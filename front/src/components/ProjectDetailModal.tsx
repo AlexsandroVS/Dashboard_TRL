@@ -10,6 +10,7 @@ import {
   FiInfo,
   FiFileText
 } from 'react-icons/fi';
+import { IconType } from 'react-icons';
 
 interface ProjectDetailModalProps {
   project: any;
@@ -61,22 +62,47 @@ const ProjectDetailModal: React.FC<ProjectDetailModalProps> = ({ project, onClos
     }
   };
 
+  const renderInfoItem = (label: string, value: string, Icon: IconType) => (
+    <div>
+      <p className="text-sm font-medium text-gray-500 flex items-center gap-2">
+        <Icon size={14} /> {label}
+      </p>
+      <p className="mt-1 text-gray-900 pl-6">{value}</p>
+    </div>
+  );
+
+  const renderProgressBar = (label: string, value: number, colorClass: string) => (
+    <div>
+      <div className="flex justify-between items-center mb-1">
+        <p className="text-sm font-medium text-gray-700">{label}</p>
+        <span className="text-sm font-medium text-gray-900">{value}%</span>
+      </div>
+      <div className="w-full bg-gray-100 rounded-full h-2.5">
+        <div 
+          className={`${colorClass} h-2.5 rounded-full transition-all duration-500`}
+          style={{ width: `${Math.min(100, value)}%` }}
+        ></div>
+      </div>
+    </div>
+  );
+
   return (
     <div className="fixed inset-0  bg-opacity-30 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-xl shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-y-auto border border-gray-100">
+      <div className="bg-white rounded-xl shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-y-auto border border-gray-200 transition-all duration-300 transform">
         <div className="p-6">
           {/* Header */}
-          <div className="flex justify-between items-start mb-6">
+          <div className="flex justify-between items-start mb-6 border-b border-gray-100 pb-4">
             <div>
               <h3 className="text-2xl font-bold text-gray-800 flex items-center gap-2">
                 <FiFileText className="text-purple-600" />
-                Detalle del Proyecto
+                {project["Nombre del Proyecto"]}
               </h3>
-              <p className="text-sm text-gray-500 mt-1">Información completa del proyecto seleccionado</p>
+              <p className="text-sm text-gray-500 mt-1">Detalles completos del proyecto</p>
             </div>
             <button 
               onClick={onClose}
-              className="text-gray-400 hover:text-gray-600 transition-colors p-1 rounded-full hover:bg-gray-100"
+              className="text-gray-500 hover:text-gray-700 transition-colors p-1 rounded-full hover:bg-gray-100"
+              aria-label="Cerrar modal"
             >
               <FiX size={24} />
             </button>
@@ -85,25 +111,20 @@ const ProjectDetailModal: React.FC<ProjectDetailModalProps> = ({ project, onClos
           {/* Contenido */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             {/* Columna izquierda - Información General */}
-            <div className="bg-gray-50 p-5 rounded-xl border border-gray-200">
-              <h4 className="text-lg font-semibold text-gray-700 mb-4 flex items-center gap-2">
+            <div className="bg-white p-5 rounded-xl border border-gray-200 shadow-sm hover:shadow-md transition-shadow">
+              <h4 className="text-lg font-semibold text-gray-700 mb-4 flex items-center gap-2 pb-2 border-b border-gray-100">
                 <FiInfo className="text-blue-500" />
                 Información General
               </h4>
               
               <div className="space-y-4">
-                <div>
-                  <p className="text-sm font-medium text-gray-500 flex items-center gap-2">
-                    <FiFileText size={14} /> Nombre del Proyecto
-                  </p>
-                  <p className="mt-1 text-gray-900 pl-6">{project["Nombre del Proyecto"]}</p>
-                </div>
+                {renderInfoItem('Nombre del Proyecto', project["Nombre del Proyecto"], FiFileText)}
                 
                 <div>
                   <p className="text-sm font-medium text-gray-500 flex items-center gap-2">
                     <FiAward size={14} /> Estado de Aprobación
                   </p>
-                  <span className={`mt-1 inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${project.Aprobado === "Sí" ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-700'} pl-6`}>
+                  <span className={`mt-1 inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${project.Aprobado === "Sí" ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'} pl-6`}>
                     {project.Aprobado === "Sí" ? (
                       <FiCheckCircle className="mr-1.5" />
                     ) : (
@@ -113,73 +134,27 @@ const ProjectDetailModal: React.FC<ProjectDetailModalProps> = ({ project, onClos
                   </span>
                 </div>
                 
-                <div>
-                  <p className="text-sm font-medium text-gray-500 flex items-center gap-2">
-                    <FiBarChart2 size={14} /> Nivel TRL
-                  </p>
-                  <p className="mt-1 text-gray-900 pl-6">{project["Nivel TRL"]}</p>
-                </div>
-                
-                <div>
-                  <p className="text-sm font-medium text-gray-500 flex items-center gap-2">
-                    <FiUser size={14} /> Docente Acompañante
-                  </p>
-                  <p className="mt-1 text-gray-900 pl-6">{project["Docente Acompañante"] ? 'Sí' : 'No'}</p>
-                </div>
+                {renderInfoItem('Nivel TRL', project["Nivel TRL"], FiBarChart2)}
+                {renderInfoItem('Docente Acompañante', project["Docente Acompañante"] ? 'Sí' : 'No', FiUser)}
               </div>
             </div>
             
             {/* Columna derecha - Puntajes TRL */}
-            <div className="bg-gray-50 p-5 rounded-xl border border-gray-200">
-              <h4 className="text-lg font-semibold text-gray-700 mb-4 flex items-center gap-2">
+            <div className="bg-white p-5 rounded-xl border border-gray-200 shadow-sm hover:shadow-md transition-shadow">
+              <h4 className="text-lg font-semibold text-gray-700 mb-4 flex items-center gap-2 pb-2 border-b border-gray-100">
                 <FiBarChart2 className="text-purple-500" />
-                Puntajes TRL
+                Progreso TRL
               </h4>
               
               <div className="space-y-5">
-                <div>
-                  <div className="flex justify-between items-center mb-1">
-                    <p className="text-sm font-medium text-gray-700">TRL 1-3 (Básico)</p>
-                    <span className="text-sm font-medium text-gray-900">{project["Puntaje TRL 1-3"]}%</span>
-                  </div>
-                  <div className="w-full bg-gray-200 rounded-full h-2.5">
-                    <div 
-                      className="bg-blue-500 h-2.5 rounded-full" 
-                      style={{ width: `${Math.min(100, project["Puntaje TRL 1-3"])}%` }}
-                    ></div>
-                  </div>
-                </div>
+                {renderProgressBar('TRL 1-3 (Básico)', project["Puntaje TRL 1-3"], 'bg-blue-500')}
+                {renderProgressBar('TRL 4-7 (Intermedio)', project["Puntaje TRL 4-7"], 'bg-green-500')}
+                {renderProgressBar('TRL 8-9 (Avanzado)', project["Puntaje TRL 8-9"], 'bg-purple-500')}
                 
-                <div>
-                  <div className="flex justify-between items-center mb-1">
-                    <p className="text-sm font-medium text-gray-700">TRL 4-7 (Intermedio)</p>
-                    <span className="text-sm font-medium text-gray-900">{project["Puntaje TRL 4-7"]}%</span>
-                  </div>
-                  <div className="w-full bg-gray-200 rounded-full h-2.5">
-                    <div 
-                      className="bg-green-500 h-2.5 rounded-full" 
-                      style={{ width: `${Math.min(100, project["Puntaje TRL 4-7"])}%` }}
-                    ></div>
-                  </div>
-                </div>
-                
-                <div>
-                  <div className="flex justify-between items-center mb-1">
-                    <p className="text-sm font-medium text-gray-700">TRL 8-9 (Avanzado)</p>
-                    <span className="text-sm font-medium text-gray-900">{project["Puntaje TRL 8-9"]}%</span>
-                  </div>
-                  <div className="w-full bg-gray-200 rounded-full h-2.5">
-                    <div 
-                      className="bg-purple-500 h-2.5 rounded-full" 
-                      style={{ width: `${Math.min(100, project["Puntaje TRL 8-9"])}%` }}
-                    ></div>
-                  </div>
-                </div>
-                
-                <div className="mt-6 p-4 bg-blue-50 rounded-lg border border-blue-100">
+                <div className="mt-6 p-4 bg-blue-50 rounded-lg border border-blue-200">
                   <p className="text-sm text-blue-800 flex items-start gap-2">
                     <FiInfo className="text-blue-500 mt-0.5 flex-shrink-0" />
-                    Los puntajes TRL representan el nivel de madurez tecnológica del proyecto en cada segmento.
+                    <span>Los puntajes TRL representan el nivel de madurez tecnológica del proyecto en cada segmento.</span>
                   </p>
                 </div>
               </div>
@@ -187,10 +162,10 @@ const ProjectDetailModal: React.FC<ProjectDetailModalProps> = ({ project, onClos
           </div>
           
           {/* Footer con botones */}
-          <div className="mt-8 flex flex-col sm:flex-row justify-end gap-3">
+          <div className="mt-8 pt-4 border-t border-gray-100 flex flex-col sm:flex-row justify-end gap-3">
             <button
               onClick={onClose}
-              className="px-4 py-2.5 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors flex items-center justify-center gap-2"
+              className="px-5 py-2.5 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors flex items-center justify-center gap-2 font-medium"
             >
               <FiX size={16} />
               Cerrar
@@ -198,7 +173,7 @@ const ProjectDetailModal: React.FC<ProjectDetailModalProps> = ({ project, onClos
             <button
               onClick={handlePrint}
               disabled={isPrinting}
-              className="px-4 py-2.5 bg-purple-600 text-white rounded-lg hover:bg-purple-700 disabled:opacity-70 transition-colors flex items-center justify-center gap-2"
+              className="px-5 py-2.5 bg-gradient-to-r from-purple-600 to-purple-700 text-white rounded-lg hover:opacity-90 disabled:opacity-70 transition-all flex items-center justify-center gap-2 font-medium shadow-sm hover:shadow-md"
             >
               {isPrinting ? (
                 <>
@@ -206,7 +181,7 @@ const ProjectDetailModal: React.FC<ProjectDetailModalProps> = ({ project, onClos
                     <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                     <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                   </svg>
-                  Generando...
+                  Generando reporte...
                 </>
               ) : (
                 <>

@@ -1,4 +1,3 @@
-// src/pages/dashboard/components/GeneralInsights.tsx
 import React from "react";
 import {
   FiTrendingUp,
@@ -38,100 +37,128 @@ interface Props {
 
 const GeneralInsights: React.FC<Props> = ({ data }) => {
   return (
-    <div className="space-y-8">
-
-      {/* Sección de resumen */}
+    <motion.div
+      className="space-y-8"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.4 }}
+    >
+      {/* Estado de aprobación */}
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-        <div className="bg-purple-50 border border-purple-200 rounded-xl p-6 shadow-sm">
-          <h4 className="text-purple-800 text-lg font-semibold flex items-center gap-2 mb-2">
+        <motion.div
+          className="bg-purple-50 border border-purple-200 rounded-xl p-6 shadow-sm"
+          whileHover={{ scale: 1.02 }}
+          transition={{ duration: 0.2 }}
+        >
+          <h4 className="text-xl text-purple-800 font-semibold flex items-center gap-2 mb-2">
             <FiTrendingUp />
             Estado de Aprobación
           </h4>
-          <p className="text-purple-900 text-md">
+          <p className="text-purple-900 text-lg">
             <strong>{data.metricas.aprobados}</strong> de{" "}
             <strong>{data.metricas.total_proyectos}</strong> proyectos aprobados
           </p>
-          <p className="text-sm text-purple-700 mt-1">
+          <p className="text-base text-purple-700 mt-1">
             ({data.metricas.porcentaje_aprobados.toFixed(1)}%)
           </p>
-        </div>
+        </motion.div>
 
-        <div className="bg-yellow-50 border border-yellow-200 rounded-xl p-6 shadow-sm">
-          <h4 className="text-yellow-800 text-lg font-semibold flex items-center gap-2 mb-2">
+        <motion.div
+          className="bg-yellow-50 border border-yellow-200 rounded-xl p-6 shadow-sm"
+          whileHover={{ scale: 1.02 }}
+          transition={{ duration: 0.2 }}
+        >
+          <h4 className="text-xl text-yellow-800 font-semibold flex items-center gap-2 mb-4">
             <FiAward />
             Proyectos Destacados
           </h4>
-          <ul className="text-yellow-900 space-y-1 text-sm">
+          <ul className="divide-y divide-yellow-100">
             {data.top_proyectos.map((p, index) => (
-              <li key={index} className="flex gap-2 items-center">
-                <FiStar className="text-yellow-600" />
-                {p["Nombre del Proyecto"]} – <strong>{p["Puntaje Total"]} pts</strong>
+              <li
+                key={index}
+                className="flex items-start justify-between py-2 gap-4"
+              >
+                <span className="text-yellow-900 font-medium leading-snug">
+                  {p["Nombre del Proyecto"]}
+                </span>
+                <span className="text-yellow-700 font-semibold whitespace-nowrap">
+                  {p["Puntaje Total"]} pts
+                </span>
               </li>
             ))}
           </ul>
-        </div>
+        </motion.div>
 
-        <div className="bg-blue-50 border border-blue-200 rounded-xl p-6 shadow-sm">
-          <h4 className="text-blue-800 text-lg font-semibold flex items-center gap-2 mb-2">
+        <motion.div
+          className="bg-blue-50 border border-blue-200 rounded-xl p-6 shadow-sm"
+          whileHover={{ scale: 1.02 }}
+          transition={{ duration: 0.2 }}
+        >
+          <h4 className="text-xl text-blue-800 font-semibold flex items-center gap-2 mb-2">
             <FiBarChart />
             Puntajes Promedio
           </h4>
-          <ul className="text-blue-900 space-y-1 text-sm">
+          <ul className="text-blue-900 space-y-1 text-base">
             {Object.entries(data.metricas.promedios).map(([key, val]) => (
               <li key={key}>
                 {key}: <strong>{val.toFixed(1)}</strong>
               </li>
             ))}
           </ul>
-        </div>
+        </motion.div>
       </div>
 
-      {/* Distribución por TRL */}
-      <div className="bg-white border border-gray-200 p-6 rounded-xl shadow-sm">
-        <h4 className="text-gray-800 text-lg font-semibold mb-4 flex items-center gap-2">
+      {/* Distribución TRL */}
+      <motion.div
+        className="bg-white border border-gray-200 p-6 rounded-xl shadow-sm"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ delay: 0.1 }}
+      >
+        <h4 className="text-xl font-semibold text-gray-800 mb-4 flex items-center gap-2">
           <FiInfo />
           Distribución por Segmento TRL
         </h4>
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-sm text-gray-700">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-base text-gray-700">
           <div className="bg-gray-50 rounded-md p-4 text-center border">
-            <span className="block text-xl font-bold text-indigo-600">
+            <span className="block text-2xl font-bold text-indigo-600">
               {data.metricas.distribucion_trl["TRL 1-3"] || 0}
             </span>
             Etapa Inicial (TRL 1-3)
           </div>
           <div className="bg-gray-50 rounded-md p-4 text-center border">
-            <span className="block text-xl font-bold text-indigo-600">
+            <span className="block text-2xl font-bold text-indigo-600">
               {data.metricas.distribucion_trl["TRL 4-7"] || 0}
             </span>
             En Desarrollo (TRL 4-7)
           </div>
           <div className="bg-gray-50 rounded-md p-4 text-center border">
-            <span className="block text-xl font-bold text-indigo-600">
+            <span className="block text-2xl font-bold text-indigo-600">
               {data.metricas.distribucion_trl["TRL 8-9"] || 0}
             </span>
             Cerca de Implementación (TRL 8-9)
           </div>
         </div>
-      </div>
+      </motion.div>
 
       {/* Lista de insights */}
       <motion.div
-        initial={{ opacity: 0, y: 10 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5 }}
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ delay: 0.2 }}
         className="bg-white border border-gray-200 p-6 rounded-xl shadow-sm"
       >
-        <h4 className="text-gray-800 text-lg font-semibold mb-4 flex items-center gap-2">
+        <h4 className="text-xl font-semibold text-gray-800 mb-4 flex items-center gap-2">
           <FiZap />
           Insights Generales
         </h4>
-        <ul className="list-disc pl-6 space-y-2 text-gray-700 text-sm">
+        <ul className="list-disc pl-6 space-y-3 text-gray-700 text-base">
           {data.insights.map((linea, idx) => (
             <li key={idx}>{linea}</li>
           ))}
         </ul>
       </motion.div>
-    </div>
+    </motion.div>
   );
 };
 

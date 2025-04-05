@@ -8,7 +8,7 @@ interface ChartSectionProps {
 
 const ChartSection: React.FC<ChartSectionProps> = ({ graficos }) => {
   const [currentSlide, setCurrentSlide] = useState(0);
-  
+
   const parseChartData = (chartData: string) => {
     try {
       return chartData ? JSON.parse(chartData) : null;
@@ -20,43 +20,28 @@ const ChartSection: React.FC<ChartSectionProps> = ({ graficos }) => {
 
   const chartData = [
     {
-      title: "Distribución TRL",
+      title: 'Distribución TRL',
       data: parseChartData(graficos?.distribucion_trl),
-      cols: 2
     },
     {
-      title: "Proporción Aprobados",
-      data: parseChartData(graficos?.proporcion_aprobados),
-      cols: 1
+      title: 'Proporción Aprobados + Puntaje TRL 1-3',
+      data: parseChartData(graficos?.proporcion_y_puntaje),
     },
     {
-      title: "Aprobación por TRL",
+      title: 'Aprobación por TRL',
       data: parseChartData(graficos?.aprobacion_por_trl),
-      cols: 2
     },
     {
-      title: "Puntaje TRL 1-3",
-      data: parseChartData(graficos?.puntaje_trl13),
-      cols: 1
-    },
-    {
-      title: "Distribución por Industria",
+      title: 'Distribución por Industria',
       data: parseChartData(graficos?.distribucion_industria),
-      cols: 1
     },
     {
-      title: "Nivel de Inglés",
-      data: parseChartData(graficos?.nivel_ingles),
-      cols: 1
+      title: 'Nivel de Inglés + Ubicación',
+      data: parseChartData(graficos?.ingles_y_ubicacion),
     },
-    {
-      title: "Ubicación Geográfica",
-      data: parseChartData(graficos?.ubicacion_geografica),
-      cols: 1
-    }
   ];
 
-  const slidesPerView = 2; // Mostrar 2 gráficos a la vez
+  const slidesPerView = 2;
   const totalSlides = Math.ceil(chartData.length / slidesPerView);
 
   const nextSlide = () => {
@@ -80,14 +65,14 @@ const ChartSection: React.FC<ChartSectionProps> = ({ graficos }) => {
       <div className="flex items-center justify-between mb-4">
         <h3 className="text-lg font-semibold text-gray-800">Visualización de Datos</h3>
         <div className="flex space-x-2">
-          <button 
+          <button
             onClick={prevSlide}
             className="p-2 rounded-full hover:bg-gray-100 transition-colors"
             aria-label="Anterior"
           >
             <ChevronLeft className="w-5 h-5 text-gray-600" />
           </button>
-          <button 
+          <button
             onClick={nextSlide}
             className="p-2 rounded-full hover:bg-gray-100 transition-colors"
             aria-label="Siguiente"
@@ -98,40 +83,46 @@ const ChartSection: React.FC<ChartSectionProps> = ({ graficos }) => {
       </div>
 
       <div className="relative overflow-hidden">
-        <div 
+        <div
           className="flex transition-transform duration-300 ease-in-out"
           style={{ transform: `translateX(-${currentSlide * 100}%)` }}
         >
           {Array.from({ length: totalSlides }).map((_, slideIndex) => (
-            <div 
-              key={slideIndex} 
-              className="w-full flex-shrink-0 grid grid-cols-1 md:grid-cols-2 gap-6"
+            <div
+              key={slideIndex}
+              className="w-full flex-shrink-0 flex flex-col gap-6"
             >
               {chartData
                 .slice(slideIndex * slidesPerView, (slideIndex + 1) * slidesPerView)
                 .map((chart, index) => (
-                  <div 
-                    key={index} 
-                    className={`bg-white p-4 rounded-lg shadow-sm border border-gray-100 ${
-                      chart.cols === 2 ? 'md:col-span-2' : ''
-                    }`}
+                  <div
+                    key={index}
+                    className="bg-white p-6 rounded-xl shadow-md border border-gray-200"
+                    style={{ minHeight: 500 }}
                   >
-                    <h4 className="font-medium text-gray-800 mb-4">{chart.title}</h4>
-                    <div className="h-80">
+                    <h4 className="font-medium text-gray-800 mb-4 text-lg">
+                      {chart.title}
+                    </h4>
+                    <div className="h-[450px]">
                       {chart.data ? (
                         <Plot
                           data={chart.data.data}
                           layout={{
                             ...chart.data.layout,
-                            width: null, // Hacer que sea responsivo
-                            height: 300,
-                            margin: { t: 30, b: 40, l: 50, r: 30 }
+                            width: null,
+                            height: 450,
+                            margin: chart.data.layout?.margin || {
+                              t: 60,
+                              b: 60,
+                              l: 50,
+                              r: 40,
+                            },
                           }}
-                          config={{ 
+                          config={{
                             responsive: true,
-                            displayModeBar: false // Ocultar barra de herramientas para más espacio
+                            displayModeBar: false,
                           }}
-                          style={{ width: '100%' }}
+                          style={{ width: '100%', height: '100%' }}
                         />
                       ) : (
                         <div className="flex items-center justify-center h-full text-gray-400">

@@ -6,6 +6,7 @@ const Graficos: React.FC = () => {
   const [graficos, setGraficos] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [activeSlide, setActiveSlide] = useState(0);
 
   useEffect(() => {
     const fetchGraficos = async () => {
@@ -25,96 +26,130 @@ const Graficos: React.FC = () => {
     fetchGraficos();
   }, []);
 
-  if (loading) return <div>Loading...</div>;
-  if (error) return <div>{error}</div>;
+  if (loading) return <div className="flex justify-center items-center h-64">Cargando gráficos...</div>;
+  if (error) return <div className="text-red-500 p-4">{error}</div>;
 
-  // Verificar si los datos son válidos antes de intentar parsearlos
-  const distribucionTrlData = graficos?.distribucion_trl ? JSON.parse(graficos.distribucion_trl) : null;
-  const aprobacionPorTrlData = graficos?.aprobacion_por_trl ? JSON.parse(graficos.aprobacion_por_trl) : null;
-  const proporcionAprobadosData = graficos?.proporcion_aprobados ? JSON.parse(graficos.proporcion_aprobados) : null;
-  const puntajeTrlData = graficos?.puntaje_trl ? JSON.parse(graficos.puntaje_trl) : null;
-  const distribucionIndustriaData = graficos?.distribucion_industria ? JSON.parse(graficos.distribucion_industria) : null;
-  const nivelInglesData = graficos?.nivel_ingles ? JSON.parse(graficos.nivel_ingles) : null;
-  const ubicacionGeograficaData = graficos?.ubicacion_geografica ? JSON.parse(graficos.ubicacion_geografica) : null;
+  // Parsear los datos de los gráficos manteniendo sus layouts originales
+  const parseGraphData = (graphData: string | null) => {
+    if (!graphData) return null;
+    try {
+      const parsed = JSON.parse(graphData);
+      return {
+        data: parsed.data,
+        layout: parsed.layout || { title: 'Gráfico' },
+        config: { responsive: true }
+      };
+    } catch (e) {
+      console.error("Error parsing graph data:", e);
+      return null;
+    }
+  };
+
+  const graficosData = [
+    {
+      title: "📊 Distribución por Nivel TRL",
+      data: parseGraphData(graficos?.distribucion_trl),
+      description: "Distribución de proyectos por segmento de madurez tecnológica (TRL)"
+    },
+    {
+      title: "✅ Proyectos Aprobados",
+      data: parseGraphData(graficos?.proporcion_aprobados),
+      description: "Proporción de proyectos aprobados vs no aprobados"
+    },
+    {
+      title: "📈 Aprobación por Segmento TRL",
+      data: parseGraphData(graficos?.aprobacion_por_trl),
+      description: "Relación entre aprobación y nivel de madurez tecnológica"
+    },
+    {
+      title: "🔍 Distribución de Puntajes TRL 1-3",
+      data: parseGraphData(graficos?.puntaje_trl),
+      description: "Distribución de puntajes para proyectos con TRL 1-3"
+    },
+    {
+      title: "🏭 Proyectos por Industria",
+      data: parseGraphData(graficos?.distribucion_industria),
+      description: "Distribución de proyectos por sector industrial"
+    },
+    {
+      title: "🌍 Nivel de Inglés",
+      data: parseGraphData(graficos?.nivel_ingles),
+      description: "Distribución del nivel de inglés reportado en los proyectos"
+    },
+    {
+      title: "📍 Ubicación Geográfica",
+      data: parseGraphData(graficos?.ubicacion_geografica),
+      description: "Distribución geográfica de los proyectos"
+    }
+  ].filter(item => item.data !== null);
+
+  // Configuración común para todos los gráficos
+  const commonConfig = {
+    responsive: true,
+    displayModeBar: true,
+    displaylogo: false,
+    scrollZoom: false
+  };
+
+  // Estilo para los contenedores de gráficos
+  const graphContainerStyle = "bg-white p-4 rounded-lg shadow-md mb-8 h-full";
 
   return (
-    <div className="p-6 bg-white rounded-lg shadow-md mt-6">
-      <h2 className="text-2xl font-semibold mb-4">Gráficos de Datos</h2>
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+    <div className="p-6 bg-gray-50 min-h-screen">
+      <h2 className="text-3xl font-bold text-gray-800 mb-8">Visualización de Datos</h2>
+      
+      {/* Versión para móviles - Carrusel */}
+      <div className="lg:hidden">
+        <div className="relative overflow-hidden rounded-xl shadow-lg bg-white p-4 mb-4 h-96">
+          {graficosData[activeSlide] && (
+            <>
+              <h3 className="text-xl font-semibold mb-2 text-gray-800">{graficosData[activeSlide].title}</h3>
+              <p className="text-sm text-gray-600 mb-3">{graficosData[activeSlide].description}</p>
+              <div className="h-64">
+                <Plot 
+                  data={graficosData[activeSlide].data.data} 
+                  layout={{...graficosData[activeSlide].data.layout, height: 300}} 
+                  config={commonConfig}
+                  useResizeHandler
+                  style={{width: '100%', height: '100%'}}
+                />
+              </div>
+            </>
+          )}
+        </div>
         
-        {/* Gráfico Distribución TRL */}
-        <div className="mb-6">
-          <h3 className="text-xl font-medium mb-3">Distribución TRL</h3>
-          {distribucionTrlData ? (
-            <Plot data={distribucionTrlData.data} layout={{ title: 'Distribución TRL' }} />
-          ) : (
-            <p>No hay datos disponibles para este gráfico.</p>
-          )}
+        <div className="flex justify-center space-x-2 mb-8">
+          {graficosData.map((_, index) => (
+            <button
+              key={index}
+              onClick={() => setActiveSlide(index)}
+              className={`w-3 h-3 rounded-full ${activeSlide === index ? 'bg-blue-600' : 'bg-gray-300'}`}
+              aria-label={`Ir a gráfico ${index + 1}`}
+            />
+          ))}
         </div>
+      </div>
 
-        {/* Gráfico Aprobación por TRL */}
-        <div className="mb-6">
-          <h3 className="text-xl font-medium mb-3">Aprobación por TRL</h3>
-          {aprobacionPorTrlData ? (
-            <Plot data={aprobacionPorTrlData.data} layout={{ title: 'Aprobación por TRL' }} />
-          ) : (
-            <p>No hay datos disponibles para este gráfico.</p>
-          )}
-        </div>
-
-        {/* Gráfico Proporción de Proyectos Aprobados */}
-        <div className="mb-6">
-          <h3 className="text-xl font-medium mb-3">Proporción de Proyectos Aprobados</h3>
-          {proporcionAprobadosData ? (
-            <Plot data={proporcionAprobadosData.data} layout={{ title: 'Proporción de Proyectos Aprobados' }} />
-          ) : (
-            <p>No hay datos disponibles para este gráfico.</p>
-          )}
-        </div>
-
-        {/* Gráfico Puntaje TRL */}
-        <div className="mb-6">
-          <h3 className="text-xl font-medium mb-3">Puntaje TRL</h3>
-          {puntajeTrlData ? (
-            <Plot data={puntajeTrlData.data} layout={{ title: 'Puntaje TRL' }} />
-          ) : (
-            <p>No hay datos disponibles para este gráfico.</p>
-          )}
-        </div>
-
-        {/* Gráfico Distribución por Industria */}
-        <div className="mb-6">
-          <h3 className="text-xl font-medium mb-3">Distribución por Industria</h3>
-          {distribucionIndustriaData ? (
-            <Plot data={distribucionIndustriaData.data} layout={{ title: 'Distribución por Industria' }} />
-          ) : (
-            <p>No hay datos disponibles para este gráfico.</p>
-          )}
-        </div>
-
-        {/* Gráfico Nivel de Inglés */}
-        <div className="mb-6">
-          <h3 className="text-xl font-medium mb-3">Nivel de Inglés de los Proyectos</h3>
-          {nivelInglesData ? (
-            <Plot data={nivelInglesData.data} layout={{ title: 'Nivel de Inglés de los Proyectos' }} />
-          ) : (
-            <p>No hay datos disponibles para este gráfico.</p>
-          )}
-        </div>
-
-        {/* Gráfico Ubicación Geográfica */}
-        <div className="mb-6">
-          <h3 className="text-xl font-medium mb-3">Ubicación Geográfica de los Proyectos</h3>
-          {ubicacionGeograficaData ? (
-            <Plot data={ubicacionGeograficaData.data} layout={{ title: 'Ubicación Geográfica de los Proyectos' }} />
-          ) : (
-            <p>No hay datos disponibles para este gráfico.</p>
-          )}
-        </div>
-
+      {/* Versión para desktop - Grid */}
+      <div className="hidden lg:grid grid-cols-1 md:grid-cols-2 gap-6">
+        {graficosData.map((graph, index) => (
+          <div key={index} className={graphContainerStyle}>
+            <h3 className="text-xl font-semibold mb-2 text-gray-800">{graph.title}</h3>
+            <p className="text-sm text-gray-600 mb-3">{graph.description}</p>
+            <div className="h-96">
+              <Plot 
+                data={graph.data.data} 
+                layout={{...graph.data.layout, height: 400}} 
+                config={commonConfig}
+                useResizeHandler
+                style={{width: '100%', height: '100%'}}
+              />
+            </div>
+          </div>
+        ))}
       </div>
     </div>
   );
 };
 
-export default Graficos;
+export default Graficos;  

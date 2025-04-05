@@ -142,22 +142,20 @@ async def obtener_metricas():
     
     return metricas
 
-
 @app.get("/datos-graficos")
 async def obtener_datos_graficos():
     df = cargar_y_procesar_datos()
-    fig1, fig2, fig3, fig4, fig5, fig6, fig7 = graficos_generales(df, "Industria", "Nivel de Inglés", "Ubicación")
+    fig1, fig2_4, fig3, fig5, fig6_7 = graficos_generales(df, "Industria", "Nivel de Inglés", "Ubicación")
     return {
         "graficos": {
             "distribucion_trl": fig1.to_json(),
-            "proporcion_aprobados": fig2.to_json(),
+            "proporcion_y_puntaje": fig2_4.to_json(),
             "aprobacion_por_trl": fig3.to_json(),
-            "puntaje_trl13": fig4.to_json(),
             "distribucion_industria": fig5.to_json(),
-            "nivel_ingles": fig6.to_json(),
-            "ubicacion_geografica": fig7.to_json()
+            "ingles_y_ubicacion": fig6_7.to_json()
         }
     }
+
 
 @app.post("/buscar-proyecto")
 async def buscar_proyecto(request: ProjectRequest):
