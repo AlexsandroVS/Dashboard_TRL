@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Plot from 'react-plotly.js';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 
@@ -8,6 +8,14 @@ interface ChartSectionProps {
 
 const ChartSection: React.FC<ChartSectionProps> = ({ graficos }) => {
   const [currentSlide, setCurrentSlide] = useState(0);
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const checkMobile = () => setIsMobile(window.innerWidth < 768);
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
 
   const parseChartData = (chartData: string) => {
     try {
@@ -19,29 +27,16 @@ const ChartSection: React.FC<ChartSectionProps> = ({ graficos }) => {
   };
 
   const chartData = [
-    {
-      title: 'Distribución TRL',
-      data: parseChartData(graficos?.distribucion_trl),
-    },
-    {
-      title: 'Proporción Aprobados + Puntaje TRL 1-3',
-      data: parseChartData(graficos?.proporcion_y_puntaje),
-    },
-    {
-      title: 'Aprobación por TRL',
-      data: parseChartData(graficos?.aprobacion_por_trl),
-    },
-    {
-      title: 'Distribución por Industria',
-      data: parseChartData(graficos?.distribucion_industria),
-    },
-    {
-      title: 'Nivel de Inglés + Ubicación',
-      data: parseChartData(graficos?.ingles_y_ubicacion),
-    },
+    { title: '📊 Aprobados por Nivel TRL', data: parseChartData(graficos?.grafico_1) },
+    { title: '✅ Proyectos Aprobados', data: parseChartData(graficos?.grafico_2) },
+    { title: '📈 Aprobación por TRL', data: parseChartData(graficos?.grafico_3) },
+    { title: '🔍 Puntajes TRL 1-3', data: parseChartData(graficos?.grafico_4) },
+    { title: '🏭 Proyectos por Industria', data: parseChartData(graficos?.grafico_5) },
+    { title: '🌍 Nivel de Inglés', data: parseChartData(graficos?.grafico_6) },
+    { title: '📍 Ubicación Geográfica', data: parseChartData(graficos?.grafico_7) },
   ];
 
-  const slidesPerView = 2;
+  const slidesPerView = isMobile ? 1 : 2;
   const totalSlides = Math.ceil(chartData.length / slidesPerView);
 
   const nextSlide = () => {
@@ -52,76 +47,50 @@ const ChartSection: React.FC<ChartSectionProps> = ({ graficos }) => {
     setCurrentSlide((prev) => (prev === 0 ? totalSlides - 1 : prev - 1));
   };
 
-  if (!graficos) {
-    return (
-      <div className="text-center py-12 text-gray-500 bg-gray-50 rounded-lg">
-        Actualice los datos para ver los gráficos
-      </div>
-    );
-  }
-
   return (
     <div className="relative">
-      <div className="flex items-center justify-between mb-4">
-        <h3 className="text-lg font-semibold text-gray-800">Visualización de Datos</h3>
+      <div className="flex justify-between items-center mb-6">
+        <h3 className="text-lg sm:text-xl font-semibold text-gray-800">
+          Visualización de Datos
+        </h3>
         <div className="flex space-x-2">
-          <button
-            onClick={prevSlide}
-            className="p-2 rounded-full hover:bg-gray-100 transition-colors"
-            aria-label="Anterior"
-          >
+          <button onClick={prevSlide} className="p-2 hover:bg-gray-200 rounded-full" aria-label="Anterior">
             <ChevronLeft className="w-5 h-5 text-gray-600" />
           </button>
-          <button
-            onClick={nextSlide}
-            className="p-2 rounded-full hover:bg-gray-100 transition-colors"
-            aria-label="Siguiente"
-          >
+          <button onClick={nextSlide} className="p-2 hover:bg-gray-200 rounded-full" aria-label="Siguiente">
             <ChevronRight className="w-5 h-5 text-gray-600" />
           </button>
         </div>
       </div>
 
-      <div className="relative overflow-hidden">
+      <div className="overflow-hidden">
         <div
           className="flex transition-transform duration-300 ease-in-out"
           style={{ transform: `translateX(-${currentSlide * 100}%)` }}
         >
           {Array.from({ length: totalSlides }).map((_, slideIndex) => (
-            <div
-              key={slideIndex}
-              className="w-full flex-shrink-0 flex flex-col gap-6"
-            >
+            <div key={slideIndex} className="w-full flex-shrink-0 flex flex-col sm:flex-row gap-6">
               {chartData
                 .slice(slideIndex * slidesPerView, (slideIndex + 1) * slidesPerView)
-                .map((chart, index) => (
+                .map((chart, idx) => (
                   <div
-                    key={index}
-                    className="bg-white p-6 rounded-xl shadow-md border border-gray-200"
-                    style={{ minHeight: 500 }}
+                    key={idx}
+                    className="flex-1 bg-white p-4 sm:p-6 rounded-xl shadow-md border border-gray-200"
                   >
-                    <h4 className="font-medium text-gray-800 mb-4 text-lg">
+                    <h4 className="text-base sm:text-lg font-medium text-gray-800 mb-3 truncate">
                       {chart.title}
                     </h4>
-                    <div className="h-[450px]">
+                    <div className="h-[350px] sm:h-[450px] w-full">
                       {chart.data ? (
                         <Plot
                           data={chart.data.data}
                           layout={{
                             ...chart.data.layout,
                             width: null,
-                            height: 450,
-                            margin: chart.data.layout?.margin || {
-                              t: 60,
-                              b: 60,
-                              l: 50,
-                              r: 40,
-                            },
+                            height: isMobile ? 350 : 450,
+                            autosize: true,
                           }}
-                          config={{
-                            responsive: true,
-                            displayModeBar: false,
-                          }}
+                          config={{ responsive: true, displayModeBar: false }}
                           style={{ width: '100%', height: '100%' }}
                         />
                       ) : (
@@ -145,7 +114,6 @@ const ChartSection: React.FC<ChartSectionProps> = ({ graficos }) => {
             className={`w-3 h-3 rounded-full ${
               currentSlide === index ? 'bg-purple-600' : 'bg-gray-300'
             }`}
-            aria-label={`Ir a slide ${index + 1}`}
           />
         ))}
       </div>

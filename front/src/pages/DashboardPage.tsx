@@ -18,6 +18,7 @@ import MetricCard from "../components/MetricaCard";
 import ProjectSearch from "../components/ProjectSearch";
 import ChartSection from "../components/ChartSection";
 import DataStatus from "../components/DataStatus";
+import Top10ProjectsView from "../components/Top10ProjectsView";
 import ProjectsTable from "../components/ProjectsTable";
 import {
   obtenerProyectos,
@@ -49,22 +50,23 @@ const DashboardPage: React.FC = () => {
   const itemsPerPage = 10;
 
   const handleActualizarDatos = async () => {
-    if (!password) {
+    const passwordLimpia = limpiarContraseña(password);
+  
+    if (!passwordLimpia) {
       setStatus({ type: "error", message: "Por favor ingrese la contraseña" });
       return;
     }
-
+  
     setStatus({ type: "loading", message: "Actualizando datos..." });
-
+  
     try {
-      const [proyectosRes, metricasRes, graficosRes, insigthsRes] =
-        await Promise.all([
-          obtenerProyectos(password),
-          getMetricasPrincipales(password),
-          getGraficosData(password),
-          getInsightsGenerales(password),
-        ]);
-
+      const [proyectosRes, metricasRes, graficosRes, insigthsRes] = await Promise.all([
+        obtenerProyectos(passwordLimpia),
+        getMetricasPrincipales(passwordLimpia),
+        getGraficosData(passwordLimpia),
+        getInsightsGenerales(passwordLimpia),
+      ]);
+  
       setProyectos(Array.isArray(proyectosRes) ? proyectosRes : []);
       setMetricas(metricasRes);
       setInsigths(insigthsRes);
@@ -81,13 +83,22 @@ const DashboardPage: React.FC = () => {
       });
     }
   };
+  
+  const limpiarContraseña = (password: string) => {
+    return password
+      .replace(/\u00A0/g, " ") // espacio no separable
+      .replace(/\u200B/g, "")  // zero-width space
+      .replace(/\uFEFF/g, "")  // BOM
+      .trim();
+  };
+  
 
   return (
     <div className="min-h-screen ">
       <Navbar activeTab={activeTab} setActiveTab={setActiveTab} />
 
       <motion.main
-        className="max-w-full mx-auto px-4 sm:px-6 lg:px-8 pb-12 mt-[110px]"
+        className="max-w-full mx-auto px-4 sm:px-6 lg:px-8 pb-12 pt-[100px]"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ duration: 0.5 }}
@@ -143,7 +154,7 @@ const DashboardPage: React.FC = () => {
                     <div className="flex-grow">
                       <label
                         htmlFor="password"
-                        className="block text-base text-lg font-medium text-gray-700 mb-1"
+                        className="block  text-lg font-medium text-gray-700 mb-1"
                       >
                         Contraseña de Acceso
                       </label>
@@ -156,7 +167,13 @@ const DashboardPage: React.FC = () => {
                           id="password"
                           value={password}
                           onChange={(e) => setPassword(e.target.value)}
-                          className="block w-full pl-10 pr-4 py-2 text-base border text-lg border-gray-300 focus:outline-0 rounded-md focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition"
+                          onKeyDown={(e) => {
+                            if (e.key === "Enter") {
+                              e.preventDefault();
+                              handleActualizarDatos();
+                            }
+                          }}
+                          className="block w-full pl-10 pr-4 py-2 border text-lg border-gray-300 focus:outline-0 rounded-md focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition"
                           placeholder="Ingrese su contraseña"
                         />
                       </div>
@@ -214,6 +231,12 @@ const DashboardPage: React.FC = () => {
                       trend="neutral"
                     />
                     <MetricCard
+                      title="Nivel Inglés + Común"
+                      value={metricas.nivel_ingles_mas_comun}
+                      icon={<FiUser className="text-cyan-500" />}
+                      trend="neutral"
+                    />
+                    <MetricCard
                       title="TRL Máximo"
                       value={metricas.trl_max}
                       icon={<FaRocket className="text-purple-500" />}
@@ -244,6 +267,12 @@ const DashboardPage: React.FC = () => {
                       ? "Actualice los datos para ver las métricas"
                       : "No hay datos disponibles"}
                   </div>
+                )}
+                {proyectos.length > 0 && (
+                  <Top10ProjectsView
+                    proyectos={proyectos}
+                    password={password}
+                  />
                 )}
               </motion.section>
             )}
@@ -279,6 +308,7 @@ const DashboardPage: React.FC = () => {
                     proyectos={proyectos}
                     currentPage={currentPage}
                     itemsPerPage={itemsPerPage}
+                    password={password}
                     setCurrentPage={setCurrentPage}
                   />
                 ) : (

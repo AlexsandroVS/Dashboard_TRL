@@ -25,7 +25,7 @@ const MetricaCard: React.FC<MetricCardProps> = ({ title, value, icon, trend }) =
       <div className="flex justify-between items-start">
         <div>
           <p className="text-base font-semibold text-black">{title}</p>
-          <p className="text-3xl font-bold text-gray-800 mt-1">{value}</p>
+          <p className="text-2xl font-bold text-gray-800 mt-1">{value}</p>
         </div>
         <span className="text-3xl">{icon}</span>
       </div>
