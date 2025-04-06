@@ -116,6 +116,19 @@
         </div>
       </div>
     </div>
+    
+    {% if insights %}
+    <div class="row" style="margin-top: 1rem; align-items: flex-start">
+      <div class="label" style="margin-top: 0.2rem">Insights:</div>
+      <div class="value">
+        <ul style="list-style-type: disc; padding-left: 1.2rem; margin: 0">
+          {% for item in insights %}
+          <li style="margin-bottom: 0.4rem">{{ item }}</li>
+          {% endfor %}
+        </ul>
+      </div>
+    </div>
+    {% endif %}
 
     <div class="footer">
       Reporte generado automáticamente por el Sistema TRL - Universidad

@@ -1,5 +1,27 @@
 # funciones.py
 import pandas as pd
+import re
+from typing import Optional
+
+def normalizar_contraseña(password: str) -> str:
+    """
+    Normaliza la contraseña reemplazando todos los espacios y caracteres especiales por guiones
+    y asegura el formato consistente.
+    """
+    if not password:
+        return ""
+    
+    # Paso 1: Reemplazar cualquier tipo de espacio o carácter especial por guión
+    password = re.sub(r'[\s\u00A0\u200B\u200C\u200D\uFEFF\W]+', '-', password)
+    
+    # Paso 2: Eliminar guiones consecutivos y al inicio/final
+    password = re.sub(r'-+', '-', password).strip('-')
+    
+    # Paso 3: Asegurar formato de 6 partes con guiones
+    parts = password.split('-')
+    if len(parts) >= 6:
+        return '-'.join(parts[:6])  # Toma los primeros 6 segmentos
+    return password
 
 def segmento_trl(nivel):
     if 1 <= nivel <= 3:

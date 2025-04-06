@@ -40,14 +40,20 @@ def graficos_generales(df, columna_industria, columna_ingles, columna_ubicacion)
         "Ubicación": ["#3498db", "#2ecc71", "#e74c3c", "#f1c40f", "#95a5a6"]
     }
 
-    # -------- FIG 1: Distribución TRL
-    conteo_segmento = df["Segmento TRL"].value_counts().reset_index()
-    conteo_segmento.columns = ["Segmento TRL", "Cantidad"]
-    
+    # Gráfico 1
+    registros = []
+    for _, row in df[df["Aprobado"] == "Sí"].iterrows():
+        for segmento in ["TRL 1-3", "TRL 4-7", "TRL 8-9"]:
+            if row[f"Puntaje {segmento}"] >= 50:
+                registros.append({"Segmento TRL": segmento})
+    df_aprobados = pd.DataFrame(registros)
+    conteo_aprobados = df_aprobados["Segmento TRL"].value_counts().reset_index()
+    conteo_aprobados.columns = ["Segmento TRL", "Aprobados"]
+
     fig1 = px.bar(
-        conteo_segmento,
+        conteo_aprobados,
         x="Segmento TRL",
-        y="Cantidad",
+        y="Aprobados",
         color="Segmento TRL",
         color_discrete_map={
             "TRL 1-3": colors["TRL 1-3"],
@@ -56,75 +62,65 @@ def graficos_generales(df, columna_industria, columna_ingles, columna_ubicacion)
         },
         template="plotly_white"
     )
-    fig1.update_traces(marker_line_color="white", marker_line_width=2, texttemplate="%{y}", textposition="outside", textfont_size=14)
-    fig1.update_layout(**crear_layout("📊 Distribución por Nivel TRL"), xaxis_title="Segmento TRL", yaxis_title="Número de Proyectos", showlegend=False, height=600)
+    fig1.update_traces(texttemplate="%{y}", textposition="outside", textfont_size=14)
+    fig1.update_layout(**crear_layout("📊 Aprobados por Nivel TRL"), xaxis_title="Segmento TRL", yaxis_title="Número de Proyectos", showlegend=False, height=600)
     fig1.update_xaxes(tickangle=-30)
 
-    # -------- FIG 2 y 4 en SUBPLOT
-    fig2_4 = make_subplots(rows=1, cols=2, subplot_titles=("✅ Proyectos Aprobados", "🔍 Puntajes TRL 1-3"), specs=[[{"type": "domain"}, {"type": "xy"}]])
+    # Gráfico 2
+    fig2 = px.pie(df, names="Aprobado", hole=0.4, color="Aprobado", color_discrete_map={"Sí": colors["Sí"], "No": colors["No"]}, template="plotly_white")
+    fig2.update_traces(textinfo="percent+label", pull=[0.05, 0], textfont_size=14)
+    fig2.update_layout(**crear_layout("✅ Proyectos Aprobados"), showlegend=False, height=600)
 
-    # Gráfico 2: Pie
-    pie2 = px.pie(df, names="Aprobado", hole=0.4, color="Aprobado", color_discrete_map={"Sí": colors["Sí"], "No": colors["No"]}, template="plotly_white")
-    pie2.update_traces(textinfo="percent+label", pull=[0.05, 0], marker_line_color="white", marker_line_width=2, textfont_size=14)
-    for trace in pie2.data:
-        fig2_4.add_trace(trace, row=1, col=1)
-
-    # Gráfico 4: Histograma
-    hist4 = px.histogram(df, x="Puntaje TRL 1-3", nbins=20, color_discrete_sequence=[colors["TRL 1-3"]], template="plotly_white")
-    hist4.update_traces(marker_line_color="white", marker_line_width=2)
-    for trace in hist4.data:
-        fig2_4.add_trace(trace, row=1, col=2)
-    fig2_4.update_layout(**crear_layout(""), height=600)
-    fig2_4.update_xaxes(title_text="Puntaje", row=1, col=2, tickangle=-30)
-    fig2_4.update_yaxes(title_text="Número de Proyectos", row=1, col=2)
-    fig2_4.update_layout(showlegend=False)
-
-    # -------- FIG 3: Aprobación por TRL
-    fig3 = px.histogram(df, x="Segmento TRL", color="Aprobado", barmode="group", color_discrete_map={"Sí": colors["Sí"], "No": colors["No"]}, template="plotly_white")
-    fig3.update_traces(marker_line_color="white", marker_line_width=2)
+    # Gráfico 3
+    registros = []
+    for _, row in df.iterrows():
+        for segmento in ["TRL 1-3", "TRL 4-7", "TRL 8-9"]:
+            aprobado = "Sí" if row[f"Puntaje {segmento}"] >= 50 else "No"
+            registros.append({
+                "Segmento TRL": segmento,
+                "Aprobado": aprobado
+            })
+    df_segmentos = pd.DataFrame(registros)
+    fig3 = px.histogram(df_segmentos, x="Segmento TRL", color="Aprobado", barmode="group", color_discrete_map={"Sí": colors["Sí"], "No": colors["No"]}, template="plotly_white")
+    fig3.update_traces()
     fig3.update_layout(**crear_layout("📈 Aprobación por Segmento TRL"), xaxis_title="Segmento TRL", yaxis_title="Número de Proyectos", height=600)
     fig3.update_xaxes(tickangle=-30)
 
-    # -------- FIG 5: Industria
+    # Gráfico 4
+    fig4 = px.histogram(df, x="Puntaje TRL 1-3", nbins=20, color_discrete_sequence=[colors["TRL 1-3"]], template="plotly_white")
+    fig4.update_layout(**crear_layout("🔍 Puntajes TRL 1-3"), xaxis_title="Puntaje", yaxis_title="Número de Proyectos", height=600)
+    fig4.update_xaxes(tickangle=-30)
+
+    # Gráfico 5
     if columna_industria in df.columns:
         df["Industria"] = df[columna_industria].fillna("No especificada").astype(str).str.strip()
         conteo_industria = df["Industria"].value_counts().reset_index()
         conteo_industria.columns = ["Industria", "Cantidad"]
-        
         fig5 = px.bar(conteo_industria, x="Cantidad", y="Industria", orientation="h", color="Industria", template="plotly_white")
-        fig5.update_traces(marker_line_color="white", marker_line_width=2)
-        fig5.update_layout(**crear_layout("🏭 Proyectos por Industria"), xaxis_title="Número de Proyectos", yaxis_title="Industria", showlegend=False, height=600)
+        fig5.update_layout(**crear_layout("🏭 Proyectos por Industria"), height=600, showlegend=False)
     else:
         fig5 = None
 
-    # -------- FIG 6 y 7 en SUBPLOT
-    if columna_ingles in df.columns and columna_ubicacion in df.columns:
+    # Gráfico 6
+    if columna_ingles in df.columns:
         df["Nivel de Inglés"] = df[columna_ingles].fillna("No especificado").str.strip().str.capitalize()
         conteo_ingles = df["Nivel de Inglés"].value_counts().reset_index()
         conteo_ingles.columns = ["Nivel", "Cantidad"]
+        fig6 = px.bar(conteo_ingles, x="Nivel", y="Cantidad", color="Nivel", template="plotly_white")
+        fig6.update_layout(**crear_layout("🌍 Nivel de Inglés"), height=600, showlegend=False)
+        fig6.update_xaxes(tickangle=-30)
+    else:
+        fig6 = None
 
+    # Gráfico 7
+    if columna_ubicacion in df.columns:
         df["Ubicación"] = df[columna_ubicacion].astype(str).str.strip().str.capitalize().replace({"Nan": "No especificada", "": "No especificada"})
         conteo_ubicacion = df["Ubicación"].value_counts().reset_index()
         conteo_ubicacion.columns = ["Ubicación", "Cantidad"]
-
-        fig6_7 = make_subplots(rows=1, cols=2, subplot_titles=("🌍 Nivel de Inglés", "📍 Ubicación Geográfica"), specs=[[{"type": "xy"}, {"type": "domain"}]])
-
-        # Bar (Inglés)
-        bar6 = px.bar(conteo_ingles, x="Nivel", y="Cantidad", color="Nivel", template="plotly_white")
-        bar6.update_traces(marker_line_color="white", marker_line_width=2)
-        for trace in bar6.data:
-            fig6_7.add_trace(trace, row=1, col=1)
-        fig6_7.update_xaxes(title_text="Nivel", row=1, col=1, tickangle=-30)
-        fig6_7.update_yaxes(title_text="Número de Proyectos", row=1, col=1)
-
-        # Pie (Ubicación)
-        pie7 = px.pie(conteo_ubicacion, names="Ubicación", values="Cantidad", hole=0.3, color="Ubicación", color_discrete_sequence=colors["Ubicación"], template="plotly_white")
-        pie7.update_traces(textinfo="percent+label", pull=[0.1 if x == "No especificada" else 0 for x in conteo_ubicacion["Ubicación"]], marker_line_color="white", marker_line_width=2, textfont_size=14)
-        for trace in pie7.data:
-            fig6_7.add_trace(trace, row=1, col=2)
-
-        fig6_7.update_layout(**crear_layout(""), height=600, showlegend=False)
+        fig7 = px.pie(conteo_ubicacion, names="Ubicación", values="Cantidad", hole=0.3, color_discrete_sequence=colors["Ubicación"], template="plotly_white")
+        fig7.update_traces(textinfo="percent+label", textfont_size=14)
+        fig7.update_layout(**crear_layout("📍 Ubicación Geográfica"), height=600, showlegend=False)
     else:
-        fig6_7 = None
+        fig7 = None
 
-    return fig1, fig2_4, fig3, fig5, fig6_7
+    return fig1, fig2, fig3, fig4, fig5, fig6, fig7
