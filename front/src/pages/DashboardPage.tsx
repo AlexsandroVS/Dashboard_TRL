@@ -86,11 +86,11 @@ const DashboardPage: React.FC = () => {
   
   const limpiarContraseña = (password: string) => {
     return password
-      .replace(/\u00A0/g, " ") // espacio no separable
-      .replace(/\u200B/g, "")  // zero-width space
-      .replace(/\uFEFF/g, "")  // BOM
+      .replace(/\u00A0/g, " ")
+      .replace(/\u200B/g, "")
+      .replace(/\uFEFF/g, "")
       .trim();
-  };
+  };  
   
 
   return (

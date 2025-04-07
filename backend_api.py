@@ -46,13 +46,14 @@ def validar_contraseña(authorization: str = Header(...)):
         decoded = base64.b64decode(datos).decode("utf-8")
         _, password = decoded.split(":", 1)
 
-        password_limpia = password.strip().replace("\u00A0", " ").replace("\u200B", "")
-        esperado = APP_PASSWORD.replace("\u00A0", " ").replace("\u200B", "")
+        password_limpia = password.strip().replace("\u00A0", " ").replace("\u200B", "").replace("\uFEFF", "")
+        esperado = APP_PASSWORD.replace("\u00A0", " ").replace("\u200B", "").replace("\uFEFF", "")
 
-        if password_limpia != esperado:
+        # Validación flexible
+        if password != APP_PASSWORD and password_limpia != esperado:
             raise HTTPException(status_code=401, detail="Contraseña incorrecta")
 
-    except Exception:
+    except Exception as e:
         raise HTTPException(status_code=401, detail="Error en autenticación")
 
 class ProjectRequest(BaseModel):
@@ -206,9 +207,26 @@ async def obtener_proyectos(authorization: str = Header(...)):
         ]].to_dict(orient="records")
     }
 
-@app.get("/reporte-proyecto/{nombre}")
-async def generar_reporte_proyecto(request: Request, nombre: str, authorization: str = Header(...)):
-    validar_contraseña(authorization)
+@app.get("/reporte-proyecto/{nombre}", response_class=HTMLResponse)
+async def generar_reporte_proyecto(
+    request: Request,
+    nombre: str,
+    auth: str = Query(...)
+):
+    try:
+        decoded = base64.b64decode(auth).decode("utf-8")
+        _, password = decoded.split(":", 1)
+
+        # Usar la misma lógica de limpieza que en los otros reportes
+        password_limpia = password.strip().replace("\u00A0", " ").replace("\u200B", "")
+        esperado = APP_PASSWORD.replace("\u00A0", " ").replace("\u200B", "")
+
+        if password_limpia != esperado:
+            raise HTTPException(status_code=401, detail="Credenciales inválidas")
+
+    except Exception as e:
+        raise HTTPException(status_code=401, detail="Error en autenticación")
+
     df = cargar_y_procesar_datos()
     nombre_decodificado = unquote(nombre)
 
@@ -232,7 +250,7 @@ async def generar_reporte_proyecto(request: Request, nombre: str, authorization:
         "trl_1_3": proyecto["Puntaje TRL 1-3"],
         "trl_4_7": proyecto["Puntaje TRL 4-7"],
         "trl_8_9": proyecto["Puntaje TRL 8-9"],
-        "insights": insights  # ✅ nuevo campo
+        "insights": insights
     }
     return templates.TemplateResponse("reports/reporte_template.html", context)
 

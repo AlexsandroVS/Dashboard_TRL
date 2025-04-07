@@ -25,38 +25,29 @@ const ProjectDetailModal: React.FC<ProjectDetailModalProps> = ({ project, onClos
   const handlePrint = async () => {
     setIsPrinting(true);
     try {
+      // Limpiar la contraseña consistentemente
+      const cleanPassword = (pass: string) => 
+        pass.replace(/\u00A0/g, " ")
+           .replace(/\u200B/g, "")
+           .replace(/\uFEFF/g, "")
+           .trim();
+  
+      const passwordLimpia = cleanPassword(password);
       const projectName = encodeURIComponent(project["Nombre del Proyecto"]);
-      const url = `${apiUrl}/reporte-proyecto/${projectName}`;
-      const auth = `Basic ${btoa(`admin:${password}`)}`;
       
-      const printWindow = window.open('', '_blank');
-      if (printWindow) {
-        printWindow.document.write(`
-          <html>
-            <head><title>Preparando reporte...</title></head>
-            <body style="display: flex; justify-content: center; align-items: center; height: 100vh;">
-              <div style="text-align: center;">
-                <p>Generando reporte, por favor espere...</p>
-              </div>
-            </body>
-          </html>
-        `);
-        
-        const response = await fetch(url, {
-          headers: { 'Authorization': auth }
-        });
-        const html = await response.text();
-        
-        printWindow.document.open();
-        printWindow.document.write(html);
-        printWindow.document.close();
-        
-        setTimeout(() => {
-          printWindow.print();
-        }, 500);
+      // Usar el mismo formato de autenticación que otros endpoints
+      const auth = btoa(`multimediafalab:${passwordLimpia}`);
+      const url = `${apiUrl}/reporte-proyecto/${projectName}?auth=${encodeURIComponent(auth)}`;
+      
+      const win = window.open(url, '_blank');
+      if (win) {
+        win.focus();
+      } else {
+        alert('Permite las ventanas emergentes para ver el reporte.');
       }
     } catch (error) {
       console.error('Error al imprimir:', error);
+      alert('Error al generar el reporte');
     } finally {
       setIsPrinting(false);
     }

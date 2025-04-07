@@ -161,7 +161,11 @@ const ProjectsTable: React.FC<ProjectsTableProps> = ({
         <ProjectDetailModal
           project={selectedProject}
           onClose={() => setIsModalOpen(false)}
-          password={password}
+          password={password
+            .replace(/\u00A0/g, " ")
+            .replace(/\u200B/g, "")
+            .replace(/\uFEFF/g, "")
+            .trim()}
         />
       )}
     </div>
