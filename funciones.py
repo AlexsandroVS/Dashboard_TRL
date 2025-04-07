@@ -1,7 +1,71 @@
 # funciones.py
 import pandas as pd
+import io
 import re
 from typing import Optional
+from openpyxl import Workbook
+from openpyxl.styles import Font, Alignment, PatternFill, Border, Side
+
+def generar_excel_aprobados(df: pd.DataFrame) -> io.BytesIO:
+    columnas = [
+        "Nombre del Proyecto", "Aprobado", "Nivel TRL", "Segmento TRL", "Docente Acompañante",
+        "Ubicación", "Nivel de Inglés", "Puntaje TRL 1-3", "Puntaje TRL 4-7", "Puntaje TRL 8-9",
+        "Puntaje Total", "Insights"
+    ]
+
+    # Asegurar que todas las columnas existan
+    for col in columnas:
+        if col not in df.columns:
+            df[col] = ""
+
+    wb = Workbook()
+    ws = wb.active
+    ws.title = "Proyectos Aprobados"
+
+    # Estilos
+    header_fill = PatternFill(start_color="6D28D9", end_color="6D28D9", fill_type="solid")
+    header_font = Font(color="FFFFFF", bold=True)
+    center_alignment = Alignment(horizontal="center", vertical="center", wrap_text=False)
+    border_style = Border(
+        left=Side(style="thin"),
+        right=Side(style="thin"),
+        top=Side(style="thin"),
+        bottom=Side(style="thin"),
+    )
+
+    # Escribir encabezados
+    for col_num, col_name in enumerate(columnas, 1):
+        cell = ws.cell(row=1, column=col_num, value=col_name)
+        cell.fill = header_fill
+        cell.font = header_font
+        cell.alignment = center_alignment
+        cell.border = border_style
+
+    # Escribir datos
+    for row_num, row_data in enumerate(df[columnas].values.tolist(), 2):
+        for col_num, value in enumerate(row_data, 1):
+            # Convertir listas a string plano
+            if isinstance(value, list):
+                value = ", ".join(str(v) for v in value)
+            elif isinstance(value, (dict, tuple)):
+                value = str(value)
+
+            cell = ws.cell(row=row_num, column=col_num, value=value)
+            cell.alignment = Alignment(wrap_text=False)
+            cell.border = border_style
+
+    # (Opcional) Ancho fijo por columna
+    for col_letter in ws.iter_cols(min_row=1, max_row=1):
+        letra = col_letter[0].column_letter
+        ws.column_dimensions[letra].width = 25  # puedes ajustar a tu gusto
+
+    return _guardar_excel(wb)
+
+def _guardar_excel(workbook: Workbook) -> io.BytesIO:
+    output = io.BytesIO()
+    workbook.save(output)
+    output.seek(0)
+    return output
 
 def normalizar_contraseña(password: str) -> str:
     """
@@ -154,6 +218,7 @@ def evaluar_potencial(proyecto):
         return "🔍 Potencial limitado: Requiere desarrollo significativo"
 
  # Modificar la función generar_insights para usar todas las columnas necesarias
+
 def generar_insights(proyecto, diccionario=None):
     """Genera insights personalizados (versión unificada)"""
     insights = []

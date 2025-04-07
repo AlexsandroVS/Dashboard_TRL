@@ -1,20 +1,22 @@
 from datetime import datetime
 from fastapi import FastAPI, HTTPException, Request, Header, Query
-from fastapi.responses import HTMLResponse
+from fastapi.responses import HTMLResponse, StreamingResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.templating import Jinja2Templates
 from fastapi.encoders import jsonable_encoder
 from pydantic import BaseModel
+
 import pandas as pd
 import base64
 import numpy as np
 from auth import obtener_todas_las_entradas
-from funciones import segmento_trl, calcular_puntajes_por_segmento, generar_insights
+from funciones import segmento_trl, calcular_puntajes_por_segmento, generar_insights, generar_excel_aprobados
 from data_loader import cargar_diccionario
 from visualizaciones import graficos_generales
 from urllib.parse import unquote
 import os
+import io
 import re
 from dotenv import load_dotenv
 
@@ -303,49 +305,24 @@ async def obtener_insights_generales(authorization: str = Header(...)):
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error al generar insights: {str(e)}")
 
-@app.get("/reporte-aprobados", response_class=HTMLResponse)
-async def generar_reporte_aprobados(request: Request, auth: str = Query(...)):
-    try:
-        decoded = base64.b64decode(auth).decode("utf-8")
-        _, password = decoded.split(":", 1)
-
-        password_limpia = password.strip().replace("\u00A0", " ").replace("\u200B", "")
-        esperado = APP_PASSWORD.replace("\u00A0", " ").replace("\u200B", "")
-
-        if password_limpia != esperado:
-            raise HTTPException(status_code=401, detail="Credenciales inválidas")
-    except:
-        raise HTTPException(status_code=401, detail="Error en autenticación")
-
+@app.get("/reporte-aprobados", response_class=StreamingResponse)
+async def generar_reporte_aprobados():
     df = cargar_y_procesar_datos()
     aprobados = df[df["Aprobado"] == "Sí"]
 
     if aprobados.empty:
         raise HTTPException(status_code=404, detail="No hay proyectos aprobados.")
 
-    proyectos_contexto = []
-    for _, proyecto in aprobados.iterrows():
-        proyectos_contexto.append({
-            "nombre_proyecto": proyecto["Nombre del Proyecto"],
-            "aprobado": proyecto["Aprobado"],
-            "nivel_trl": proyecto["Nivel TRL"],
-            "segmento_trl": proyecto["Segmento TRL"],
-            "docente_acompanante": "Sí" if proyecto["Docente Acompañante"] else "No",
-            "ubicacion": proyecto.get("Ubicación", "No especificada"),
-            "nivel_ingles": proyecto.get("Nivel de Inglés", "No especificado"),
-            "trl_1_3": proyecto["Puntaje TRL 1-3"],
-            "trl_4_7": proyecto["Puntaje TRL 4-7"],
-            "trl_8_9": proyecto["Puntaje TRL 8-9"],
-            "puntaje_total": proyecto["Puntaje Total"],
-            "insights": generar_insights(proyecto),
-        })
+    excel_file = generar_excel_aprobados(aprobados)
 
-    return templates.TemplateResponse("reports/reporte_aprobados.html", {
-        "request": request,
-        "fecha_generacion": datetime.now().strftime("%d/%m/%Y %H:%M"),
-        "proyectos": proyectos_contexto
-    })
-
+    return StreamingResponse(
+        excel_file,
+        media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        headers={
+            "Content-Disposition": "attachment; filename=proyectos_aprobados.xlsx"
+        }
+    )
+    
 @app.get("/reporte-top10", response_class=HTMLResponse)
 async def generar_reporte_top10(request: Request, auth: str = Query(...)):
     try:
