@@ -5,7 +5,6 @@ import {
   FiBarChart,
   FiInfo,
   FiZap,
-  FiStar,
 } from "react-icons/fi";
 import { motion } from "framer-motion";
 

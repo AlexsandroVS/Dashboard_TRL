@@ -1,7 +1,11 @@
 // src/utils/displayMetrics.ts
-import React from 'react';
+interface MetricasProps {
+  totalProyectos: number;
+  proyectosAprobados: number;
+  proyectosConDocente: number;
+}
 
-export const displayMetrics = (metricas: any) => {
+export const displayMetrics = (metricas: MetricasProps) => {
   return (
     <div className="metrics-list">
       <p>Total proyectos: {metricas.totalProyectos}</p>

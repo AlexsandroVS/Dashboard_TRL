@@ -1,8 +1,26 @@
 import React, { useState } from "react";
 import { ChevronUpIcon, ChevronDownIcon } from "@heroicons/react/24/solid";
 import ProjectDetailModal from "./ProjectDetailModal";
+
+interface ProjectData {
+  "Nombre del Proyecto": string;
+  Aprobado: "Sí" | "No";
+  "Puntaje TRL 1-3": number;
+  "Puntaje TRL 4-7": number;
+  "Puntaje TRL 8-9": number;
+  "Puntaje Total": number;
+  "Segmento TRL"?: string;
+  "Docente Acompañante"?: boolean;
+  "Nivel de Inglés"?: string;
+  "Industria"?: string;
+  "Ubicación"?: string;
+  Insights?: string[] | string;
+  
+  // Añade esta línea para permitir acceso por string index
+  [key: string]: any;
+}
 interface ProjectsTableProps {
-  proyectos: any[];
+  proyectos: ProjectData[];
   currentPage: number;
   itemsPerPage: number;
   setCurrentPage: (page: number) => void;
