@@ -57,7 +57,7 @@ const ProjectSearch: React.FC<ProjectSearchProps> = ({ password }) => {
             className="inline-flex items-center justify-center gap-2 px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-md text-lg transition"
           >
             <FiDownload />
-            Descargar PDF Aprobados
+            Descargar Excel Aprobados
           </button>
           <button
             onClick={() => descargarReporteTop10(password)}

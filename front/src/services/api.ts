@@ -1,12 +1,13 @@
 import axios from "axios";
 
-const apiUrl = "http://127.0.0.1:8000";
+// Usamos ruta relativa vacía para compatibilidad con backend integrado
+const apiUrl = "";
 
 const limpiarContraseña = (password: string): string =>
   password
     .replace(/\u00A0/g, " ") // Espacio no separable
-    .replace(/\u200B/g, "") // Zero-width space
-    .replace(/\uFEFF/g, "") // BOM
+    .replace(/\u200B/g, "")  // Zero-width space
+    .replace(/\uFEFF/g, "")  // BOM
     .trim();
 
 export const getGraficosData = async (password: string) => {
@@ -14,7 +15,7 @@ export const getGraficosData = async (password: string) => {
     const limpia = limpiarContraseña(password);
     const response = await axios.get(`${apiUrl}/datos-graficos`, {
       headers: {
-        Authorization: `Basic ${btoa(`multimediafalab:${limpia}`)}`,
+        Authorization: `Basic ${btoa(`multimediafalab:${limpia}`)}`
       },
     });
     return response.data;
@@ -29,7 +30,7 @@ export const getMetricasPrincipales = async (password: string) => {
     const limpia = limpiarContraseña(password);
     const response = await axios.get(`${apiUrl}/metricas-principales`, {
       headers: {
-        Authorization: `Basic ${btoa(`multimediafalab:${limpia}`)}`,
+        Authorization: `Basic ${btoa(`multimediafalab:${limpia}`)}`
       },
     });
     return response.data;
@@ -44,7 +45,7 @@ export const getInsightsGenerales = async (password: string) => {
     const limpia = limpiarContraseña(password);
     const response = await axios.get(`${apiUrl}/insights-generales`, {
       headers: {
-        Authorization: `Basic ${btoa(`multimediafalab:${limpia}`)}`,
+        Authorization: `Basic ${btoa(`multimediafalab:${limpia}`)}`
       },
     });
     return response.data;
@@ -58,14 +59,10 @@ export const actualizarDatos = async (password: string) => {
   try {
     const limpia = limpiarContraseña(password);
     const headers = {
-      Authorization: `Basic ${btoa(`multimediafalab:${limpia}`)}`,
+      Authorization: `Basic ${btoa(`multimediafalab:${limpia}`)}`
     };
 
-    const response = await axios.post(
-      `${apiUrl}/actualizar-datos`,
-      {},
-      { headers }
-    );
+    const response = await axios.post(`${apiUrl}/actualizar-datos`, {}, { headers });
     return response.data;
   } catch (error) {
     console.error("Error al actualizar los datos:", error);
@@ -78,7 +75,7 @@ export const obtenerProyectos = async (password: string) => {
     const limpia = limpiarContraseña(password);
     const response = await axios.get(`${apiUrl}/proyectos`, {
       headers: {
-        Authorization: `Basic ${btoa(`multimediafalab:${limpia}`)}`,
+        Authorization: `Basic ${btoa(`multimediafalab:${limpia}`)}`
       },
     });
     return response.data.proyectos;
@@ -91,12 +88,11 @@ export const obtenerProyectos = async (password: string) => {
 export const buscarProyecto = async (nombre: string, password: string) => {
   try {
     const limpia = limpiarContraseña(password);
-    const response = await axios.post(
-      `${apiUrl}/buscar-proyecto`,
+    const response = await axios.post(`${apiUrl}/buscar-proyecto`,
       { nombre },
       {
         headers: {
-          Authorization: `Basic ${btoa(`multimediafalab:${limpia}`)}`,
+          Authorization: `Basic ${btoa(`multimediafalab:${limpia}`)}`
         },
       }
     );
@@ -107,16 +103,11 @@ export const buscarProyecto = async (nombre: string, password: string) => {
   }
 };
 
-export const generarReporteProyecto = async (
-  nombre: string,
-  password: string
-) => {
+export const generarReporteProyecto = async (nombre: string, password: string) => {
   try {
     const limpia = limpiarContraseña(password);
     const auth = btoa(`multimediafalab:${limpia}`);
-    const url = `http://localhost:8000/reporte-proyecto/${encodeURIComponent(
-      nombre
-    )}?auth=${auth}`;
+    const url = `/reporte-proyecto/${encodeURIComponent(nombre)}?auth=${auth}`;
 
     const win = window.open(url, "_blank");
     if (win) {
@@ -129,21 +120,17 @@ export const generarReporteProyecto = async (
     alert("No se pudo generar el reporte del proyecto.");
   }
 };
-export const descargarReporteAprobados = async (
-  password: string
-): Promise<void> => {
+
+export const descargarReporteAprobados = async (password: string): Promise<void> => {
   try {
     const limpia = limpiarContraseña(password);
     const auth = btoa(`multimediafalab:${limpia}`);
-    const url = `http://localhost:8000/reporte-aprobados?auth=${auth}`;
+    const url = `/reporte-aprobados?auth=${auth}`;
 
     const win = window.open(url, "_blank");
     if (win) {
-      // Verificar periódicamente si la ventana se cerró
       const checkWindow = setInterval(() => {
-        if (win.closed) {
-          clearInterval(checkWindow);
-        }
+        if (win.closed) clearInterval(checkWindow);
       }, 100);
     } else {
       alert("Permite las ventanas emergentes para ver el reporte.");
@@ -154,21 +141,16 @@ export const descargarReporteAprobados = async (
   }
 };
 
-export const descargarReporteTop10 = async (
-  password: string
-): Promise<void> => {
+export const descargarReporteTop10 = async (password: string): Promise<void> => {
   try {
     const limpia = limpiarContraseña(password);
     const auth = btoa(`multimediafalab:${limpia}`);
-    const url = `http://localhost:8000/reporte-top10?auth=${auth}`;
+    const url = `/reporte-top10?auth=${auth}`;
 
     const win = window.open(url, "_blank");
     if (win) {
-      // Verificar periódicamente si la ventana se cerró
       const checkWindow = setInterval(() => {
-        if (win.closed) {
-          clearInterval(checkWindow);
-        }
+        if (win.closed) clearInterval(checkWindow);
       }, 100);
     } else {
       alert("Permite las ventanas emergentes para ver el reporte.");

@@ -46,7 +46,7 @@ const Navbar: React.FC<NavbarProps> = ({ activeTab, setActiveTab }) => {
         {/* LOGO */}
         <div className="flex items-center">
           <img
-            src="/conti-negro.png"
+            src="/public/conti-negro.png"
             alt="Logo UContinental"
             className="h-14 md:h-24 w-auto"
           />
