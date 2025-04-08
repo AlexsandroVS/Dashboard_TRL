@@ -1,6 +1,6 @@
 from datetime import datetime
 from fastapi import FastAPI, HTTPException, Request, Header, Query
-from fastapi.responses import HTMLResponse, StreamingResponse
+from fastapi.responses import FileResponse, HTMLResponse, StreamingResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.templating import Jinja2Templates
@@ -29,13 +29,20 @@ app = FastAPI()
 current_dir = os.path.dirname(os.path.abspath(__file__))
 templates_dir = os.path.join(current_dir, "templates")
 static_dir = os.path.join(templates_dir, "static")
+
+app.mount("/public", StaticFiles(directory="front/public"), name="public")
 app.mount("/static", StaticFiles(directory=static_dir), name="static")
+app.mount("/assets", StaticFiles(directory="templates/static"), name="assets")
+
+@app.get("/", response_class=FileResponse)
+async def serve_spa():
+    return FileResponse("templates/static/index.html")
 
 templates = Jinja2Templates(directory=templates_dir)
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173"],
+    allow_origins=["http://localhost:5173", "http://localhost:8000"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -208,6 +215,7 @@ async def obtener_proyectos(authorization: str = Header(...)):
             "Segmento TRL", "Industria", "Insights"
         ]].to_dict(orient="records")
     }
+
 
 @app.get("/reporte-proyecto/{nombre}", response_class=HTMLResponse)
 async def generar_reporte_proyecto(

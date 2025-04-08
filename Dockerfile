@@ -1,18 +1,32 @@
-# Usar una imagen base oficial de Python
-FROM python:3.10-slim
+# Etapa 1: Compilar frontend (Vite)
+FROM node:18 AS frontend-builder
 
-# Establecer el directorio de trabajo
+WORKDIR /frontend
+COPY front/ /frontend/
+
+RUN echo "Contenido de /frontend:" && ls -la /frontend && echo "Contenido de /frontend/src:" && ls -la /frontend/src
+
+RUN npm install
+RUN npm run build
+
+# Etapa 2: Backend con FastAPI
+FROM python:3.11-slim
+
 WORKDIR /app
 
-# Copiar los archivos de requisitos y el código fuente
-COPY requirements.txt .
+# Instalar dependencias
+COPY requirements.txt ./
+RUN pip install --upgrade pip && pip install --no-cache-dir -r requirements.txt
+
+# Copiar el código del backend
 COPY . .
 
-# Instalar las dependencias
-RUN pip install --default-timeout=100 --no-cache-dir -r requirements.txt
+# Copiar frontend compilado al backend
+RUN mkdir -p /app/templates/static
+COPY --from=frontend-builder /frontend/dist/assets /app/templates/static
+COPY --from=frontend-builder /frontend/dist/index.html /app/templates/static/index.html
 
-# Exponer el puerto en el que se ejecutará la aplicación
 EXPOSE 8000
 
-# Comando por defecto para ejecutar la aplicación
-CMD ["uvicorn", "backend_api:app", "--host", "0.0.0.0", "--port", "8000"]
+# ✅ Usa el CMD como string en lugar de lista JSON (más compatible)
+CMD uvicorn backend_api:app --host 0.0.0.0 --port 8000 --reload
